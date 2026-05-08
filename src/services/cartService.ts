@@ -13,6 +13,25 @@ export interface AddToCartInput {
 }
 
 export class CartService {
+  private getInventoryQuantity(product: any, keys: string[]): number {
+    const inventory = product.inventory;
+    if (!inventory) return 0;
+
+    if (inventory instanceof Map) {
+      for (const key of keys) {
+        const value = inventory.get(key);
+        if (typeof value === 'number') return value;
+      }
+      return 0;
+    }
+
+    for (const key of keys) {
+      const value = inventory[key];
+      if (typeof value === 'number') return value;
+    }
+
+    return 0;
+  }
   async getCart(userId: string): Promise<any> {
     const cart = await Cart.findOne({ userId }).populate({
       path: 'items.productId',
@@ -61,10 +80,11 @@ export class CartService {
     );
     
     if (hasInventory) {
-      const inventoryKey = size && color ? `${size}-${color}` : productId;
-      const availableQuantity = product.inventory instanceof Map 
-        ? (product.inventory.get(inventoryKey) || 0)
-        : (product.inventory[inventoryKey] || 0);
+      const inventoryKeys: string[] = [];
+      if (size && color) inventoryKeys.push(`${size}-${color}`);
+      if (size) inventoryKeys.push(size);
+      inventoryKeys.push(productId);
+      const availableQuantity = this.getInventoryQuantity(product, inventoryKeys);
       if (availableQuantity < quantity) {
         throw new AppError('Insufficient stock', HTTP_STATUS.CONFLICT);
       }
@@ -164,11 +184,11 @@ export class CartService {
     );
     
     if (hasInventory) {
-      const inventoryKey =
-        item.size && item.color ? `${item.size}-${item.color}` : item.productId.toString();
-      const availableQuantity = product.inventory instanceof Map
-        ? (product.inventory.get(inventoryKey) || 0)
-        : (product.inventory[inventoryKey] || 0);
+      const inventoryKeys: string[] = [];
+      if (item.size && item.color) inventoryKeys.push(`${item.size}-${item.color}`);
+      if (item.size) inventoryKeys.push(item.size);
+      inventoryKeys.push(item.productId.toString());
+      const availableQuantity = this.getInventoryQuantity(product, inventoryKeys);
 
       if (availableQuantity < quantity) {
         throw new AppError('Insufficient stock', HTTP_STATUS.CONFLICT);

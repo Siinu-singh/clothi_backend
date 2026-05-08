@@ -33,11 +33,10 @@ const productSchema = new Schema<IProduct>(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: ['Men', 'Women', 'Accessories', 'Footwear'],
     },
     badge: {
       type: String,
-      enum: ['NEW', 'SALE', 'FEATURED', 'LIMITED'],
+      enum: ['bestseller', 'new', 'premium'],
       default: null,
     },
     colors: {

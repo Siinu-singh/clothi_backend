@@ -5,6 +5,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyCors from '@fastify/cors';
 import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyCompress from '@fastify/compress';
+import fastifyMultipart from '@fastify/multipart';
 import { env } from './config/env.js';
 import { connectDatabase } from './config/database.js';
 import { setupSwagger } from './config/swagger.js';
@@ -25,6 +26,7 @@ import { reviewRoutes } from './routes/reviews.js';
 import { couponRoutes } from './routes/coupons.js';
 import { wishlistShareRoutes } from './routes/wishlistShare.js';
 import { notificationRoutes } from './routes/notifications.js';
+import { collectionRoutes } from './routes/collections.js';
 
 // Create Fastify instance
 const fastify = Fastify({
@@ -52,6 +54,8 @@ async function startServer() {
     await fastify.register(fastifyCors, {
       origin: env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim()),
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
     // Cookie support
@@ -70,6 +74,13 @@ async function startServer() {
 
     // Compression
     await fastify.register(fastifyCompress);
+
+    // Multipart for CSV uploads
+    await fastify.register(fastifyMultipart, {
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    });
 
     // Setup error handler
     setupErrorHandler(fastify);
@@ -104,6 +115,7 @@ async function startServer() {
     fastify.register(couponRoutes, { prefix: '/api/coupons' });
     fastify.register(wishlistShareRoutes, { prefix: '/api/wishlist-share' });
     fastify.register(notificationRoutes, { prefix: '/api/notifications' });
+    fastify.register(collectionRoutes, { prefix: '/api/collections' });
 
     // 404 handler
     fastify.setNotFoundHandler((_request, reply) => {

@@ -100,6 +100,39 @@ export interface INewsletterSubscription {
   unsubscribedAt?: Date;
 }
 
+// Collection Types
+export interface ICollection {
+  _id: Types.ObjectId;
+  name: string;
+  slug: string;
+  description?: string;
+  images: Array<{
+    url: string;
+    alt?: string;
+    isMain: boolean;
+    order: number;
+  }>;
+  basePrice: number;
+  discountType?: 'percentage' | 'fixed' | null;
+  discountValue?: number;
+  finalPrice: number;
+  discountStartDate?: Date;
+  discountEndDate?: Date;
+  totalStock: number;
+  availableStock: number;
+  lowStockThreshold?: number;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords: string[];
+  category: string;
+  tags: string[];
+  isActive: boolean;
+  isFeatured: boolean;
+  createdBy: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;

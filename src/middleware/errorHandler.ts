@@ -22,6 +22,19 @@ export async function errorHandler(error: any, request: FastifyRequest, reply: F
     });
   }
 
+  // Handle Mongoose validation errors
+  if (error.name === 'ValidationError') {
+    return reply.status(HTTP_STATUS.BAD_REQUEST).send({
+      success: false,
+      error: 'Validation Error',
+      message: error.message,
+      details: Object.values(error.errors || {}).map((err: any) => ({
+        path: [err.path],
+        message: err.message,
+      })),
+    });
+  }
+
   // Handle JWT errors
   if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
     return reply.status(HTTP_STATUS.UNAUTHORIZED).send({

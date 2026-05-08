@@ -25,6 +25,10 @@ export async function productRoutes(fastify: FastifyInstance) {
     return await productController.createProduct(request, reply);
   });
 
+  fastify.post('/bulk-import', { onRequest: [requireRole(['admin'])] }, async (request, reply) => {
+    return await productController.bulkImportProducts(request, reply);
+  });
+
   fastify.put('/:id', { onRequest: [requireRole(['admin'])] }, async (request, reply) => {
     return await productController.updateProduct(request, reply);
   });

@@ -6,14 +6,16 @@ export interface TokenPair {
   refreshToken: string;
 }
 
-export function generateTokens(userId: string): TokenPair {
+export function generateTokens(userId: string, role: string = 'customer'): TokenPair {
   const accessPayload = {
     id: userId,
+    role: role,
     iat: Math.floor(Date.now() / 1000),
   };
 
   const refreshPayload = {
     id: userId,
+    role: role,
     iat: Math.floor(Date.now() / 1000),
   };
 

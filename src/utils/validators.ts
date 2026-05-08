@@ -50,7 +50,7 @@ export const productSchema = z.object({
   image: z.string().url('Invalid image URL'),
   images: z.array(z.string().url()).optional(),
   category: z.string().min(1, 'Category is required'),
-  badge: z.enum(['NEW', 'SALE', 'FEATURED', 'LIMITED']).optional(),
+  badge: z.enum(['bestseller', 'new', 'premium']).optional(),
   colors: z.array(z.string()),
   sizes: z.array(z.string()),
   inventory: z.record(z.number()).optional(),
@@ -85,3 +85,51 @@ export const paginationSchema = z.object({
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(20),
 });
+
+// Collection Validators
+export const collectionQuerySchema = z.object({
+  page: z.string().default('1').transform(Number).pipe(z.number().min(1)),
+  limit: z.string().default('20').transform(Number).pipe(z.number().min(1).max(100)),
+  search: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.string().optional(),
+  minPrice: z.string().optional().transform((val) => (val ? Number(val) : undefined)),
+  maxPrice: z.string().optional().transform((val) => (val ? Number(val) : undefined)),
+  isFeatured: z.string().transform((val) => val === 'true').optional(),
+  sortBy: z.enum(['price', 'newest', 'popular', 'stock']).optional(),
+  sortOrder: z.enum(['asc', 'desc']).default('asc'),
+});
+
+export const collectionSchema = z.object({
+  name: z.string().min(1, 'Name is required').trim(),
+  slug: z
+    .string()
+    .min(1, 'Slug is required')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase with hyphens only'),
+  description: z.string().optional(),
+  images: z.array(
+    z.object({
+      url: z.string().url('Invalid image URL'),
+      alt: z.string().optional(),
+      isMain: z.boolean().default(false),
+      order: z.number().default(0),
+    })
+  ),
+  basePrice: z.number().min(0, 'Price must be positive'),
+  discountType: z.enum(['percentage', 'fixed']).nullable().optional(),
+  discountValue: z.number().min(0, 'Discount value must be positive').optional(),
+  discountStartDate: z.coerce.date().optional(),
+  discountEndDate: z.coerce.date().optional(),
+  totalStock: z.number().min(0, 'Stock must be non-negative'),
+  availableStock: z.number().min(0, 'Available stock must be non-negative'),
+  lowStockThreshold: z.number().min(0, 'Threshold must be non-negative').optional(),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  seoKeywords: z.array(z.string()).optional(),
+  category: z.string().min(1, 'Category is required'),
+  tags: z.array(z.string()).optional(),
+  isFeatured: z.boolean().default(false),
+});
+
+// For updates (all fields optional)
+export const collectionUpdateSchema = collectionSchema.partial();

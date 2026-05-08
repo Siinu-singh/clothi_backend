@@ -20,7 +20,7 @@ export class AuthController {
       body.lastName
     );
 
-    const { accessToken, refreshToken } = generateTokens(user._id.toString());
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -50,7 +50,7 @@ export class AuthController {
     const body = loginSchema.parse(request.body);
 
     const user = await authService.login(body.email, body.password);
-    const { accessToken, refreshToken } = generateTokens(user._id.toString());
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -88,7 +88,7 @@ export class AuthController {
     }
 
     const user = await emailVerificationService.verifyEmailWithToken(body.token);
-    const { accessToken, refreshToken } = generateTokens(user._id.toString());
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -238,7 +238,7 @@ export class AuthController {
       }
 
       const { user, isNewUser } = await authService.loginWithGoogle(body.token);
-      const { accessToken, refreshToken } = generateTokens(user._id.toString());
+      const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
       reply.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -289,7 +289,7 @@ export class AuthController {
     }
 
     const { user, isNewUser } = await authService.loginWithApple(body.token, body.user);
-    const { accessToken, refreshToken } = generateTokens(user._id.toString());
+    const { accessToken, refreshToken } = generateTokens(user._id.toString(), user.role);
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
