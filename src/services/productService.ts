@@ -17,10 +17,9 @@ export class ProductService {
       sortOrder?: 'asc' | 'desc';
     }
   ): Promise<{ products: IProduct[]; total: number; pages: number }> {
-    // Ensure limit doesn't exceed MAX_PAGE_SIZE
+    const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     limit = Math.min(limit, MAX_PAGE_SIZE);
 
-    // Build query
     const query: any = {};
 
     if (filters?.search) {
@@ -28,34 +27,30 @@ export class ProductService {
     }
 
     if (filters?.category) {
-      query.category = filters.category;
+      query.category = new RegExp(escapeRegex(filters.category), 'i');
     }
 
     if (filters?.color) {
       query.colors = filters.color;
     }
 
-    // Price range filter
     if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
       query.price = {};
       if (filters?.minPrice !== undefined) query.price.$gte = filters.minPrice;
       if (filters?.maxPrice !== undefined) query.price.$lte = filters.maxPrice;
     }
 
-    // Sorting
     let sortQuery: any = {};
     if (filters?.sortBy === 'price') {
       sortQuery.price = filters.sortOrder === 'asc' ? 1 : -1;
     } else if (filters?.sortBy === 'newest') {
       sortQuery.createdAt = -1;
     } else if (filters?.sortBy === 'popular') {
-      // You could add a popularity field here
       sortQuery.createdAt = -1;
     } else {
       sortQuery.createdAt = -1;
     }
 
-    // Execute query
     const skip = (page - 1) * limit;
     const products = await Product.find(query)
       .sort(sortQuery)
@@ -108,6 +103,115 @@ export class ProductService {
     return product.toObject();
   }
 
+  async findProductByTitleCategory(title: string, category: string): Promise<IProduct | null> {
+    const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const normalizedTitle = (title || '').trim();
+    const normalizedCategory = (category || '').trim();
+
+    if (!normalizedTitle || !normalizedCategory) {
+      return null;
+    }
+
+    const product = await Product.findOne({
+      title: new RegExp(`^${escapeRegex(normalizedTitle)}$`, 'i'),
+      category: new RegExp(`^${escapeRegex(normalizedCategory)}$`, 'i'),
+    }).lean();
+
+    return product ? (product as IProduct) : null;
+  }
+
+  async createUniqueProductsByTitleCategory(
+    items: Partial<IProduct>[]
+  ): Promise<{ created: IProduct[]; skipped: number }> {
+    const created: IProduct[] = [];
+    let skipped = 0;
+    const seenKeys = new Set<string>();
+
+    for (const item of items) {
+      const title = (item.title || '').trim();
+      const category = (item.category || '').trim();
+      const key = `${title.toLowerCase()}::${category.toLowerCase()}`;
+
+      if (!title || !category) {
+        skipped++;
+        continue;
+      }
+
+      if (seenKeys.has(key)) {
+        skipped++;
+        continue;
+      }
+
+      seenKeys.add(key);
+      const existing = await this.findProductByTitleCategory(title, category);
+      if (existing) {
+        skipped++;
+        continue;
+      }
+
+      const product = new Product(item);
+      await product.save();
+      created.push(product.toObject());
+    }
+
+    return { created, skipped };
+  }
+
+  async upsertProductsByTitleCategory(items: Partial<IProduct>[]): Promise<{ created: IProduct[]; updated: IProduct[] }> {
+    const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const created: IProduct[] = [];
+    const updated: IProduct[] = [];
+
+    for (const item of items) {
+      const title = (item.title || '').trim();
+      const category = (item.category || '').trim();
+      const existing = await Product.findOne({
+        title: new RegExp(`^${escapeRegex(title)}$`, 'i'),
+        category: new RegExp(`^${escapeRegex(category)}$`, 'i'),
+      });
+
+      if (!existing) {
+        const product = new Product(item);
+        await product.save();
+        created.push(product.toObject());
+        continue;
+      }
+
+      const incomingSizes = Array.isArray(item.sizes) ? item.sizes : [];
+      const incomingColors = Array.isArray(item.colors) ? item.colors : [];
+      const incomingInventory = item.inventory && typeof item.inventory === 'object' ? item.inventory : null;
+
+      const currentInventoryEntries = existing.inventory instanceof Map
+        ? Array.from(existing.inventory.entries())
+        : Object.entries(existing.inventory || {});
+      const mergedInventory = new Map(currentInventoryEntries as [string, number][]);
+
+      if (incomingInventory) {
+        Object.entries(incomingInventory).forEach(([size, qty]) => {
+          const current = mergedInventory.get(size) || 0;
+          const addQty = Number(qty) || 0;
+          mergedInventory.set(size, current + addQty);
+        });
+      } else if (incomingSizes.length > 0) {
+        incomingSizes.forEach((size) => {
+          const current = mergedInventory.get(size) || 0;
+          mergedInventory.set(size, current + 1);
+        });
+      }
+
+      const mergedSizes = new Set([...(existing.sizes || []), ...incomingSizes]);
+      const mergedColors = new Set([...(existing.colors || []), ...incomingColors]);
+
+      existing.inventory = mergedInventory as any;
+      existing.sizes = Array.from(mergedSizes);
+      existing.colors = Array.from(mergedColors);
+      await existing.save();
+      updated.push(existing.toObject());
+    }
+
+    return { created, updated };
+  }
+
   async updateProduct(productId: string, updates: Partial<IProduct>): Promise<IProduct> {
     const product = await Product.findByIdAndUpdate(productId, updates, {
       new: true,
@@ -130,16 +234,16 @@ export class ProductService {
   }
 
   async getRelatedProducts(productId: string, limit: number = 4): Promise<IProduct[]> {
+    const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const product = await Product.findById(productId);
 
     if (!product) {
       throw new NotFoundError('Product');
     }
 
-    // Find similar products by category
     const relatedProducts = await Product.find({
       _id: { $ne: productId },
-      category: product.category,
+      category: new RegExp(`^${escapeRegex(product.category)}$`, 'i'),
     })
       .limit(limit)
       .lean();
