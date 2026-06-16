@@ -40,8 +40,15 @@ export async function comparePassword(
       .pbkdf2Sync(password, salt, 100000, 64, 'sha512')
       .toString('hex');
     
-    // Compare hashes
-    return hashToCheck === hash;
+    // Compare hashes using timing-safe comparison to prevent timing attacks
+    const hashBuffer = Buffer.from(hashToCheck, 'hex');
+    const storedBuffer = Buffer.from(hash, 'hex');
+
+    if (hashBuffer.length !== storedBuffer.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(hashBuffer, storedBuffer);
   } catch {
     return false;
   }

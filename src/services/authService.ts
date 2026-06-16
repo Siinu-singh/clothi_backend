@@ -4,6 +4,7 @@ import { UnauthorizedError, ConflictError } from '../utils/errors.js';
 import { IUser } from '../types/index.js';
 import { oauthService } from './oauthService.js';
 import { emailVerificationService } from './emailVerificationService.js';
+import { logger } from '../utils/logger.js';
 
 export class AuthService {
   async register(
@@ -40,7 +41,7 @@ export class AuthService {
       );
     } catch (error) {
       // Log error but don't fail registration
-      console.error('Failed to send verification email:', error);
+      logger.error({ err: error }, 'Failed to send verification email');
     }
 
     return user.toObject();
@@ -75,7 +76,7 @@ export class AuthService {
           user.firstName
         );
       } catch (error) {
-        console.error('Failed to send verification email:', error);
+        logger.error({ err: error }, 'Failed to send verification email');
       }
     }
 
@@ -94,7 +95,7 @@ export class AuthService {
           appUser.firstName
         );
       } catch (error) {
-        console.error('Failed to send verification email:', error);
+        logger.error({ err: error }, 'Failed to send verification email');
       }
     }
 

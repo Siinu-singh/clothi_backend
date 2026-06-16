@@ -4,6 +4,8 @@ import { oauthService } from '../services/oauthService.js';
 import { emailVerificationService } from '../services/emailVerificationService.js';
 import { passwordResetService } from '../services/passwordResetService.js';
 import { generateTokens } from '../utils/jwt.js';
+import { logger } from '../utils/logger.js';
+import { isProduction } from '../config/env.js';
 import {
   registerSchema,
   loginSchema,
@@ -24,7 +26,7 @@ export class AuthController {
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -54,7 +56,7 @@ export class AuthController {
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -92,7 +94,7 @@ export class AuthController {
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -242,7 +244,7 @@ export class AuthController {
 
       reply.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProduction,
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
@@ -265,7 +267,7 @@ export class AuthController {
         message: isNewUser ? 'User registered with Google' : 'Login with Google successful',
       });
     } catch (error: any) {
-      console.error('Google login error:', error);
+      logger.error({ err: error }, 'Google login error');
       return reply.code(401).send({
         success: false,
         error: 'Unauthorized',
@@ -293,7 +295,7 @@ export class AuthController {
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -436,7 +438,7 @@ export class AuthController {
 
     reply.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

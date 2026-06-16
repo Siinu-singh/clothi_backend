@@ -4,6 +4,7 @@ import { emailService } from './emailService.js';
 import { hashPassword } from '../utils/password.js';
 import { UnauthorizedError, NotFoundError } from '../utils/errors.js';
 import { IUser } from '../types/index.js';
+import { env } from '../config/env.js';
 import crypto from 'crypto';
 
 export class PasswordResetService {
@@ -35,7 +36,7 @@ export class PasswordResetService {
       });
 
       // Create reset link
-      const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+      const resetLink = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 
       // Send email
       await emailService.sendPasswordResetEmail(user.email, user.firstName, resetLink);

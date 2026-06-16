@@ -1,95 +1,43 @@
 import { FastifyInstance } from 'fastify';
 import { orderController } from '../controllers/orderController.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, requireRole } from '../middleware/auth.js';
 
 export async function orderRoutes(fastify: FastifyInstance) {
   // Protected routes - user orders
-  fastify.post('/', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await orderController.createOrder(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  fastify.get('/', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await orderController.getUserOrders(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  fastify.get('/track/:trackingNumber', async (request, reply) => {
-    try {
-      return await orderController.trackOrder(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  fastify.get('/:orderId', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await orderController.getOrderById(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  fastify.delete('/:orderId', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await orderController.cancelOrder(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  // Admin routes
-  fastify.get(
-    '/admin/all',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await orderController.getAllOrders(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.post('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    orderController.createOrder(request, reply)
   );
 
-  fastify.patch(
-    '/admin/:orderId/status',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await orderController.updateOrderStatus(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.get('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    orderController.getUserOrders(request, reply)
   );
 
-  fastify.post(
-    '/admin/:orderId/tracking',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await orderController.addTrackingNumber(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.get('/track/:trackingNumber', (request, reply) =>
+    orderController.trackOrder(request, reply)
   );
 
-  fastify.get(
-    '/admin/statistics',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await orderController.getOrderStatistics(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.get('/:orderId', { onRequest: [authMiddleware] }, (request, reply) =>
+    orderController.getOrderById(request, reply)
+  );
+
+  fastify.delete('/:orderId', { onRequest: [authMiddleware] }, (request, reply) =>
+    orderController.cancelOrder(request, reply)
+  );
+
+  // Admin routes — requireRole includes auth check
+  fastify.get('/admin/all', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    orderController.getAllOrders(request, reply)
+  );
+
+  fastify.patch('/admin/:orderId/status', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    orderController.updateOrderStatus(request, reply)
+  );
+
+  fastify.post('/admin/:orderId/tracking', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    orderController.addTrackingNumber(request, reply)
+  );
+
+  fastify.get('/admin/statistics', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    orderController.getOrderStatistics(request, reply)
   );
 }

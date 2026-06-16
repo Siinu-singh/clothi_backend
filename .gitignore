@@ -29,3 +29,37 @@ build/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Added by code-review-graph
+.code-review-graph/
+
+# Local secrets & credentials
+env_file
+
+# AI & Agent helpers
+.agents/
+.kiro/
+.claude/
+.cursor/
+skills-lock.json
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+
+
+# Tooling configuration
+.mcp.json
+.opencode.json
+.windsurfrules
+.cursorrules
+
+
+# Temporary/Scratch testing files
+test_delete*
+test_delete2*
+
+# Utility & helper scripts
+promote-admin.ts
+check-users.ts
+
+

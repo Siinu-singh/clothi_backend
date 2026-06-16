@@ -4,141 +4,73 @@ import { authMiddleware } from '../middleware/auth.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
   // Public routes
-  fastify.post('/register', async (request, reply) => {
-    try {
-      return await authController.register(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/register', (request, reply) =>
+    authController.register(request, reply)
+  );
 
-  fastify.post('/login', async (request, reply) => {
-    try {
-      return await authController.login(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/login', (request, reply) =>
+    authController.login(request, reply)
+  );
 
-  fastify.post('/verify-email', async (request, reply) => {
-    try {
-      return await authController.verifyEmail(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/verify-email', (request, reply) =>
+    authController.verifyEmail(request, reply)
+  );
 
-  fastify.post('/request-password-reset', async (request, reply) => {
-    try {
-      return await authController.requestPasswordReset(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/request-password-reset', (request, reply) =>
+    authController.requestPasswordReset(request, reply)
+  );
 
-  fastify.post('/reset-password', async (request, reply) => {
-    try {
-      return await authController.resetPassword(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/reset-password', (request, reply) =>
+    authController.resetPassword(request, reply)
+  );
 
-  fastify.get('/validate-reset-token/:token', async (request, reply) => {
-    try {
-      return await authController.validateResetToken(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/validate-reset-token/:token', (request, reply) =>
+    authController.validateResetToken(request, reply)
+  );
 
-  fastify.post('/login/google', async (request, reply) => {
-    try {
-      return await authController.loginWithGoogle(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/login/google', (request, reply) =>
+    authController.loginWithGoogle(request, reply)
+  );
 
-  fastify.post('/login/apple', async (request, reply) => {
-    try {
-      return await authController.loginWithApple(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/login/apple', (request, reply) =>
+    authController.loginWithApple(request, reply)
+  );
 
-  fastify.post('/refresh', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.refreshToken(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/refresh', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.refreshToken(request, reply)
+  );
 
   // Protected routes
-  fastify.get('/profile', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.getProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/profile', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.getProfile(request, reply)
+  );
 
-  fastify.post('/resend-verification-email', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.resendVerificationEmail(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/resend-verification-email', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.resendVerificationEmail(request, reply)
+  );
 
-  fastify.post('/change-password', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.changePassword(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/change-password', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.changePassword(request, reply)
+  );
 
-  fastify.post('/logout', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.logout(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/logout', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.logout(request, reply)
+  );
 
   // OAuth linking routes (Protected - requires authentication)
-  fastify.post('/link/google', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.linkGoogleToProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/link/google', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.linkGoogleToProfile(request, reply)
+  );
 
-  fastify.post('/link/apple', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.linkAppleToProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/link/apple', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.linkAppleToProfile(request, reply)
+  );
 
-  fastify.delete('/unlink/:provider', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.unlinkOAuthProvider(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.delete('/unlink/:provider', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.unlinkOAuthProvider(request, reply)
+  );
 
-  fastify.get('/providers', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await authController.getLinkedProviders(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/providers', { onRequest: [authMiddleware] }, (request, reply) =>
+    authController.getLinkedProviders(request, reply)
+  );
 }

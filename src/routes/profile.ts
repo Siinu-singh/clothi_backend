@@ -4,83 +4,47 @@ import { authMiddleware } from '../middleware/auth.js';
 
 export async function profileRoutes(fastify: FastifyInstance) {
   // Get current user's profile
-  fastify.get('/', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.getProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.getProfile(request, reply)
+  );
 
   // Update current user's profile
-  fastify.patch('/', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.updateProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.patch('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.updateProfile(request, reply)
+  );
 
   // Get user statistics
-  fastify.get('/statistics', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.getUserStatistics(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/statistics', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.getUserStatistics(request, reply)
+  );
 
   // Update avatar
-  fastify.patch('/avatar', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.updateAvatar(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.patch('/avatar', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.updateAvatar(request, reply)
+  );
 
   // Delete avatar
-  fastify.delete('/avatar', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.deleteAvatar(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.delete('/avatar', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.deleteAvatar(request, reply)
+  );
 
   // Delete account
-  fastify.delete('/', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await userProfileController.deleteAccount(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.delete('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    userProfileController.deleteAccount(request, reply)
+  );
 
   // Check email availability (public, no auth required)
-  fastify.get('/check-email', async (request, reply) => {
-    try {
-      return await userProfileController.checkEmailAvailability(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/check-email', (request, reply) =>
+    userProfileController.checkEmailAvailability(request, reply)
+  );
 
   // Search for users (public, no auth required)
-  fastify.get('/search', async (request, reply) => {
-    try {
-      return await userProfileController.searchUsers(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/search', (request, reply) =>
+    userProfileController.searchUsers(request, reply)
+  );
 
   // Get public profile by user ID
-  fastify.get('/:userId', async (request, reply) => {
-    try {
-      return await userProfileController.getPublicProfile(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/:userId', (request, reply) =>
+    userProfileController.getPublicProfile(request, reply)
+  );
 }

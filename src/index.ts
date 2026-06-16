@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import mongoose from 'mongoose';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
@@ -7,7 +8,7 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import fastifyCompress from '@fastify/compress';
 import fastifyMultipart from '@fastify/multipart';
 import { env } from './config/env.js';
-import { connectDatabase } from './config/database.js';
+import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { setupSwagger } from './config/swagger.js';
 import { logger } from './utils/logger.js';
 import { setupErrorHandler } from './middleware/errorHandler.js';
@@ -92,12 +93,18 @@ async function startServer() {
     // Register routes
     logger.info('Registering routes...');
 
-    // Health check
+    // Health check — deep check with DB ping
     fastify.get('/health', async (_request, reply) => {
-      return reply.send({
-        success: true,
-        message: 'Server is running',
+      const dbState = mongoose.connection.readyState;
+      const isDbHealthy = dbState === 1;
+      const statusCode = isDbHealthy ? 200 : 503;
+
+      return reply.code(statusCode).send({
+        success: isDbHealthy,
+        message: isDbHealthy ? 'Server is healthy' : 'Database unhealthy',
         timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        database: isDbHealthy ? 'connected' : 'disconnected',
       });
     });
 
@@ -134,16 +141,32 @@ async function startServer() {
     logger.info(`Server is running at http://${host}:${port}`);
 
     // Graceful shutdown
-    process.on('SIGTERM', async () => {
-      logger.info('SIGTERM received, shutting down gracefully...');
-      await fastify.close();
-      process.exit(0);
-    });
+    const gracefulShutdown = async (signal: string) => {
+      logger.info(`${signal} received, shutting down gracefully...`);
+      try {
+        await fastify.close();
+        logger.info('Fastify server closed');
+        
+        await disconnectDatabase();
+        logger.info('Database disconnected');
+        
+        process.exit(0);
+      } catch (error) {
+        logger.error(error, 'Error during graceful shutdown');
+        process.exit(1);
+      }
+    };
 
-    process.on('SIGINT', async () => {
-      logger.info('SIGINT received, shutting down gracefully...');
-      await fastify.close();
-      process.exit(0);
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+    // Process-level safety nets
+    process.on('unhandledRejection', (reason) => {
+      logger.error({ err: reason }, 'Unhandled promise rejection');
+    });
+    process.on('uncaughtException', (error) => {
+      logger.fatal({ err: error }, 'Uncaught exception — shutting down');
+      process.exit(1);
     });
   } catch (error) {
     logger.error(error, 'Failed to start server');

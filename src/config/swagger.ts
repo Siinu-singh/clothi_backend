@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import { env, isProduction } from './env.js';
 
 export async function setupSwagger(fastify: FastifyInstance) {
   await fastify.register(swagger, {
@@ -10,8 +11,8 @@ export async function setupSwagger(fastify: FastifyInstance) {
         description: 'Complete API documentation for Clothi e-commerce platform',
         version: '1.0.0',
       },
-      host: 'localhost:3000',
-      schemes: ['http', 'https'],
+      host: isProduction ? 'clothi.co.in' : `localhost:${env.PORT}`,
+      schemes: isProduction ? ['https'] : ['http'],
       consumes: ['application/json'],
       produces: ['application/json'],
       securityDefinitions: {

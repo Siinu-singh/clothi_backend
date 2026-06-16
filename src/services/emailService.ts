@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 import { EmailNotification } from '../models/EmailNotification.js';
 import { NotificationPreferences } from '../models/NotificationPreferences.js';
 import { Types } from 'mongoose';
@@ -21,22 +22,14 @@ export class EmailService {
   private initializeTransporter() {
     try {
       // Use Gmail or your preferred email provider
-      if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+      if (env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD) {
         this.transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT),
-          secure: process.env.SMTP_SECURE === 'true',
+          host: env.SMTP_HOST,
+          port: env.SMTP_PORT,
+          secure: env.SMTP_PORT === 465,
           auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD,
-          },
-        });
-      } else if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-        this.transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASSWORD,
+            user: env.SMTP_USER,
+            pass: env.SMTP_PASSWORD,
           },
         });
       } else {
@@ -55,7 +48,7 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.GMAIL_USER || 'noreply@clothi.com',
+        from: env.SMTP_USER || 'noreply@clothi.com',
         ...options,
       });
 
@@ -161,7 +154,7 @@ export class EmailService {
         </div>
 
         <div style="margin: 30px 0;">
-          <a href="${process.env.FRONTEND_URL || 'https://clothi.com'}" style="
+          <a href="${env.FRONTEND_URL}" style="
             background-color: #000;
             color: white;
             padding: 12px 30px;

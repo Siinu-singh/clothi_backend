@@ -2,8 +2,10 @@ import { User } from '../models/User.js';
 import { ConflictError, UnauthorizedError } from '../utils/errors.js';
 import { IUser, IOAuthProvider } from '../types/index.js';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID!);
+const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 export interface GoogleOAuthPayload {
   sub: string;
@@ -33,7 +35,7 @@ export class OAuthService {
     try {
       const ticket = await googleClient.verifyIdToken({
         idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID!,
+        audience: env.GOOGLE_CLIENT_ID,
       });
 
       const payload = ticket.getPayload();
@@ -51,11 +53,7 @@ export class OAuthService {
         email_verified: payload.email_verified,
       };
     } catch (error: any) {
-      console.error('Google token verification error:', {
-        message: error?.message,
-        code: error?.code,
-        errorType: error?.constructor?.name
-      });
+      logger.error({ err: error, code: (error as any)?.code }, 'Google token verification error');
       throw new UnauthorizedError(`Failed to verify Google token: ${error?.message || 'Unknown error'}`);
     }
   }

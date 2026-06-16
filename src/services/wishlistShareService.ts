@@ -4,6 +4,7 @@ import { Favorite } from '../models/Favorite.js';
 import { User } from '../models/User.js';
 import { Product } from '../models/Product.js';
 import { generateToken } from '../utils/token.js';
+import { env } from '../config/env.js';
 
 class WishlistShareService {
   /**
@@ -23,7 +24,7 @@ class WishlistShareService {
       });
 
       // Return share token and link
-      const shareLink = `${process.env.FRONTEND_URL}/wishlist/shared/${shareToken}`;
+      const shareLink = `${env.FRONTEND_URL}/wishlist/shared/${shareToken}`;
 
       return {
         shareToken: wishlistShare,
@@ -55,7 +56,7 @@ class WishlistShareService {
       return {
         shareLinks: shareLinks.map((link) => ({
           ...link.toObject(),
-          shareLink: `${process.env.FRONTEND_URL}/wishlist/shared/${link.shareToken}`,
+          shareLink: `${env.FRONTEND_URL}/wishlist/shared/${link.shareToken}`,
         })),
         pagination: {
           total,

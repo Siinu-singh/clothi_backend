@@ -4,41 +4,17 @@ import { authMiddleware } from '../middleware/auth.js';
 
 export async function notificationRoutes(fastify: FastifyInstance) {
   // Get user's notification preferences (requires auth)
-  fastify.get(
-    '/preferences',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await notificationController.getPreferences(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.get('/preferences', { onRequest: [authMiddleware] }, (request, reply) =>
+    notificationController.getPreferences(request, reply)
   );
 
   // Update notification preferences (requires auth)
-  fastify.patch(
-    '/preferences',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await notificationController.updatePreferences(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.patch('/preferences', { onRequest: [authMiddleware] }, (request, reply) =>
+    notificationController.updatePreferences(request, reply)
   );
 
   // Get user's email notifications (requires auth)
-  fastify.get(
-    '/',
-    { onRequest: [authMiddleware] },
-    async (request, reply) => {
-      try {
-        return await notificationController.getNotifications(request, reply);
-      } catch (error) {
-        throw error;
-      }
-    }
+  fastify.get('/', { onRequest: [authMiddleware] }, (request, reply) =>
+    notificationController.getNotifications(request, reply)
   );
 }

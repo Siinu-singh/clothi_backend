@@ -1,14 +1,17 @@
 import pino from 'pino';
-import { env } from '../config/env.js';
+import { env, isDevelopment } from '../config/env.js';
+
+const devTransport = {
+  target: 'pino-pretty',
+  options: {
+    colorize: true,
+    ignore: 'pid,hostname',
+    singleLine: false,
+  },
+};
 
 export const logger = pino({
   level: env.LOG_LEVEL,
-  transport: {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      ignore: 'pid,hostname',
-      singleLine: false,
-    },
-  },
+  // pino-pretty adds ~30% overhead — only use in development
+  ...(isDevelopment && { transport: devTransport }),
 });

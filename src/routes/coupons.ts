@@ -1,78 +1,45 @@
 import { FastifyInstance } from 'fastify';
 import { couponController } from '../controllers/couponController.js';
-import { authMiddleware } from '../middleware/auth.js';
-import { adminMiddleware } from '../middleware/admin.js';
+import { authMiddleware, requireRole } from '../middleware/auth.js';
 
 export async function couponRoutes(fastify: FastifyInstance) {
   // Create coupon (admin only)
-  fastify.post('/', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.createCoupon(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    couponController.createCoupon(request, reply)
+  );
 
   // Get all coupons (admin only)
-  fastify.get('/', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.getAllCoupons(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    couponController.getAllCoupons(request, reply)
+  );
 
   // Get coupon by ID (admin only)
-  fastify.get('/:couponId', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.getCouponById(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/:couponId', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    couponController.getCouponById(request, reply)
+  );
 
   // Validate coupon (requires auth)
-  fastify.post('/validate', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.validateCoupon(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/validate', { onRequest: [authMiddleware] }, (request, reply) =>
+    couponController.validateCoupon(request, reply)
+  );
 
   // Update coupon (admin only)
-  fastify.patch('/:couponId', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.updateCoupon(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.patch('/:couponId', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    couponController.updateCoupon(request, reply)
+  );
 
   // Delete coupon (admin only)
-  fastify.delete('/:couponId', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await couponController.deleteCoupon(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.delete('/:couponId', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    couponController.deleteCoupon(request, reply)
+  );
 
   // Get coupons by product (public)
-  fastify.get('/product/:productId', async (request, reply) => {
-    try {
-      return await couponController.getCouponsByProduct(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/product/:productId', (request, reply) =>
+    couponController.getCouponsByProduct(request, reply)
+  );
 
   // Get coupons by category (public)
-  fastify.get('/category/:category', async (request, reply) => {
-    try {
-      return await couponController.getCouponsByCategory(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/category/:category', (request, reply) =>
+    couponController.getCouponsByCategory(request, reply)
+  );
 }

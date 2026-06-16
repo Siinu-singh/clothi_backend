@@ -1,94 +1,53 @@
 import { FastifyInstance } from 'fastify';
 import { reviewController } from '../controllers/reviewController.js';
-import { authMiddleware } from '../middleware/auth.js';
-import { adminMiddleware } from '../middleware/admin.js';
+import { authMiddleware, requireRole } from '../middleware/auth.js';
 
 export async function reviewRoutes(fastify: FastifyInstance) {
   // Create review (requires auth)
-  fastify.post('/:productId', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.createReview(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/:productId', { onRequest: [authMiddleware] }, (request, reply) =>
+    reviewController.createReview(request, reply)
+  );
 
   // Get reviews for a product (public)
-  fastify.get('/:productId', async (request, reply) => {
-    try {
-      return await reviewController.getProductReviews(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/:productId', (request, reply) =>
+    reviewController.getProductReviews(request, reply)
+  );
 
   // Get user's reviews (requires auth)
-  fastify.get('/user/my-reviews', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.getUserReviews(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/user/my-reviews', { onRequest: [authMiddleware] }, (request, reply) =>
+    reviewController.getUserReviews(request, reply)
+  );
 
   // Get single review (public)
-  fastify.get('/detail/:reviewId', async (request, reply) => {
-    try {
-      return await reviewController.getReviewById(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/detail/:reviewId', (request, reply) =>
+    reviewController.getReviewById(request, reply)
+  );
 
   // Update review (requires auth)
-  fastify.patch('/:reviewId', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.updateReview(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.patch('/:reviewId', { onRequest: [authMiddleware] }, (request, reply) =>
+    reviewController.updateReview(request, reply)
+  );
 
   // Delete review (requires auth)
-  fastify.delete('/:reviewId', { onRequest: [authMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.deleteReview(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.delete('/:reviewId', { onRequest: [authMiddleware] }, (request, reply) =>
+    reviewController.deleteReview(request, reply)
+  );
 
   // Mark review as helpful (public)
-  fastify.post('/:reviewId/helpful', async (request, reply) => {
-    try {
-      return await reviewController.markHelpful(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/:reviewId/helpful', (request, reply) =>
+    reviewController.markHelpful(request, reply)
+  );
 
-  // Admin routes
-  fastify.post('/:reviewId/approve', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.approveReview(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  // Admin routes — requireRole includes auth check
+  fastify.post('/:reviewId/approve', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    reviewController.approveReview(request, reply)
+  );
 
-  fastify.post('/:reviewId/reject', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.rejectReview(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.post('/:reviewId/reject', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    reviewController.rejectReview(request, reply)
+  );
 
-  fastify.get('/admin/pending', { onRequest: [authMiddleware, adminMiddleware] }, async (request, reply) => {
-    try {
-      return await reviewController.getPendingReviews(request, reply);
-    } catch (error) {
-      throw error;
-    }
-  });
+  fastify.get('/admin/pending', { onRequest: [requireRole(['admin'])] }, (request, reply) =>
+    reviewController.getPendingReviews(request, reply)
+  );
 }

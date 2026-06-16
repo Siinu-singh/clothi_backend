@@ -29,8 +29,27 @@ const envSchema = z.object({
 
   // Frontend
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+
+  // SMTP / Email
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.string().default('587').transform(Number),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+
+  // Google OAuth
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+  // Apple OAuth
+  APPLE_CLIENT_ID: z.string().optional(),
+  APPLE_CLIENT_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
 
 export type Env = z.infer<typeof envSchema>;
+
+// Environment helpers — use these instead of process.env.NODE_ENV
+export const isProduction = env.NODE_ENV === 'production';
+export const isDevelopment = env.NODE_ENV === 'development';
+export const isTest = env.NODE_ENV === 'test';

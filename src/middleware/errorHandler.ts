@@ -1,15 +1,20 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { AppError } from '../utils/errors.js';
 import { HTTP_STATUS } from '../config/constants.js';
+import { isDevelopment } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
 // Error handler function for use in routes
 export async function errorHandler(error: any, request: FastifyRequest, reply: FastifyReply) {
+  const requestId = request.id;
+
   // Handle custom app errors
   if (error instanceof AppError) {
     return reply.status(error.statusCode).send({
       success: false,
       error: error.message,
       details: error.details,
+      requestId,
     });
   }
 
@@ -19,6 +24,7 @@ export async function errorHandler(error: any, request: FastifyRequest, reply: F
       success: false,
       error: 'Validation Error',
       details: error.errors,
+      requestId,
     });
   }
 
@@ -32,6 +38,7 @@ export async function errorHandler(error: any, request: FastifyRequest, reply: F
         path: [err.path],
         message: err.message,
       })),
+      requestId,
     });
   }
 
@@ -41,6 +48,7 @@ export async function errorHandler(error: any, request: FastifyRequest, reply: F
       success: false,
       error: 'Unauthorized',
       message: 'Invalid or expired authentication token',
+      requestId,
     });
   }
 
@@ -50,14 +58,25 @@ export async function errorHandler(error: any, request: FastifyRequest, reply: F
       success: false,
       error: 'Not Found',
       message: error.message,
+      requestId,
     });
   }
 
+  // Log all 500-level errors for production observability
+  const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  if (statusCode >= 500) {
+    logger.error(
+      { err: error, requestId, method: request.method, url: request.url },
+      'Unhandled server error'
+    );
+  }
+
   // Handle all other errors
-  return reply.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+  return reply.status(statusCode).send({
     success: false,
     error: error.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+    requestId,
+    ...(isDevelopment && { stack: error.stack }),
   });
 }
 

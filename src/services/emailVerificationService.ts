@@ -3,6 +3,7 @@ import { EmailVerificationToken } from '../models/EmailVerificationToken.js';
 import { emailService } from './emailService.js';
 import { UnauthorizedError } from '../utils/errors.js';
 import { IUser } from '../types/index.js';
+import { env } from '../config/env.js';
 import crypto from 'crypto';
 
 export class EmailVerificationService {
@@ -23,7 +24,7 @@ export class EmailVerificationService {
       });
 
       // Create verification link
-      const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
+      const verificationLink = `${env.FRONTEND_URL}/verify-email?token=${token}`;
 
       // Send email
       await emailService.sendVerificationEmail(email, firstName, verificationLink);
