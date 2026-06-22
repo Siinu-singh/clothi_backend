@@ -62,4 +62,24 @@ test_delete2*
 promote-admin.ts
 check-users.ts
 
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# Caches and temp files
+.eslintcache
+.parcel-cache/
+.cache/
+tmp/
+temp/
+
+# local env files
+.env*.local
+
+# Debug profiles
+core
+*.cpuprofile
+*.heapprofile
+
+
 

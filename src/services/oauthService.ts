@@ -33,12 +33,27 @@ export class OAuthService {
    */
   async verifyGoogleToken(token: string): Promise<GoogleOAuthPayload> {
     try {
-      const ticket = await googleClient.verifyIdToken({
-        idToken: token,
-        audience: env.GOOGLE_CLIENT_ID,
-      });
+      let payload: any;
 
-      const payload = ticket.getPayload();
+      if (token.split('.').length === 3) {
+        // Verify as ID Token (JWT)
+        const ticket = await googleClient.verifyIdToken({
+          idToken: token,
+          audience: env.GOOGLE_CLIENT_ID,
+        });
+        payload = ticket.getPayload();
+      } else {
+        // Verify as Access Token via Google UserInfo API
+        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google UserInfo API returned status ${response.status}`);
+        }
+        payload = await response.json();
+      }
+
       if (!payload) {
         throw new UnauthorizedError('Invalid Google token');
       }
@@ -50,7 +65,7 @@ export class OAuthService {
         given_name: payload.given_name,
         family_name: payload.family_name,
         picture: payload.picture,
-        email_verified: payload.email_verified,
+        email_verified: payload.email_verified === true || payload.email_verified === 'true',
       };
     } catch (error: any) {
       logger.error({ err: error, code: (error as any)?.code }, 'Google token verification error');

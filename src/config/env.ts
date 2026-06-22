@@ -43,6 +43,9 @@ const envSchema = z.object({
   // Apple OAuth
   APPLE_CLIENT_ID: z.string().optional(),
   APPLE_CLIENT_SECRET: z.string().optional(),
+
+  // Firebase
+  FIREBASE_PROJECT_ID: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

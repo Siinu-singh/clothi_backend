@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { authController } from '../controllers/authController.js';
+import { phoneAuthController } from '../controllers/phoneAuthController.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 export async function authRoutes(fastify: FastifyInstance) {
@@ -10,6 +11,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   fastify.post('/login', (request, reply) =>
     authController.login(request, reply)
+  );
+
+  fastify.post('/login/phone', (request, reply) =>
+    phoneAuthController.loginWithPhone(request, reply)
   );
 
   fastify.post('/verify-email', (request, reply) =>

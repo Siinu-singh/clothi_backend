@@ -28,6 +28,7 @@ import { couponRoutes } from './routes/coupons.js';
 import { wishlistShareRoutes } from './routes/wishlistShare.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { collectionRoutes } from './routes/collections.js';
+import { announcementRoutes } from './routes/announcements.js';
 
 // Create Fastify instance
 const fastify = Fastify({
@@ -71,6 +72,10 @@ async function startServer() {
     await fastify.register(fastifyRateLimit, {
       max: env.RATE_LIMIT_MAX,
       timeWindow: `${env.RATE_LIMIT_WINDOW_MS}ms`,
+      allowList: (req: any) => {
+        const ip = req.ip || '';
+        return ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1') || ip.includes('localhost') || ip.includes('::1');
+      }
     });
 
     // Compression
@@ -123,6 +128,7 @@ async function startServer() {
     fastify.register(wishlistShareRoutes, { prefix: '/api/wishlist-share' });
     fastify.register(notificationRoutes, { prefix: '/api/notifications' });
     fastify.register(collectionRoutes, { prefix: '/api/collections' });
+    fastify.register(announcementRoutes, { prefix: '/api/announcements' });
 
     // 404 handler
     fastify.setNotFoundHandler((_request, reply) => {
